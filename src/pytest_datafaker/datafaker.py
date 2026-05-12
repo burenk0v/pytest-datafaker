@@ -1,0 +1,379 @@
+"""Main module for generating fake data."""
+import logging
+import secrets
+import threading
+
+from faker import Faker
+from faker.providers import BaseProvider
+
+from .config import DataFakerConfig
+
+
+class DataFaker:
+    """Class for abstract Faker methods."""
+
+    _instance: "DataFaker | None" = None
+    _lock = threading.Lock()
+
+    def __new__(cls, *args, **kwargs):
+        """Create instance of DataFaker."""
+        if cls._instance is not None:
+            return cls._instance
+        with cls._lock:
+            if cls._instance is None:
+                cls._instance = super().__new__(cls, *args, **kwargs)
+        return cls._instance
+
+    def __init__(self, config: DataFakerConfig):
+        """Initialize DataFaker."""
+        if getattr(self, "_initialized", False):
+            return
+        self.logger = logging.getLogger(self.__class__.__name__)
+        self.api = Faker(list(config.locales)) if config.locales else Faker()
+        if config.providers and config.locales:
+            for loc in config.locales:
+                for provider in config.providers:
+                    self.api[loc].add_provider(provider)
+        self.seed = config.seed
+        self.api.seed_instance(self.seed)
+        self.logger.info(f"DataFaker seed: {self.seed}")
+        self._initialized = True
+
+    def add_provider(self, provider: BaseProvider, locale: str | None = None) -> None:
+        """
+        Add custom provider to all locales or custom.
+
+        :param provider: provider to add
+        :param locale: locale to add provider to
+        :return: None
+        """
+        if locale:
+            self.api[locale].add_provider(provider)
+            return
+        for loc in self.api.locales:
+            self.api[loc].add_provider(provider)
+
+    def docker_string(self, separator: str = "_") -> str:
+        """
+        Get random Docker-style name.
+
+        :param separator: separator between words ('_')
+        :returns
+        """
+        left = {
+            "admiring",
+            "adoring",
+            "affectionate",
+            "agitated",
+            "amazing",
+            "angry",
+            "awesome",
+            "blissful",
+            "boring",
+            "brave",
+            "clever",
+            "cocky",
+            "compassionate",
+            "competent",
+            "condescending",
+            "confident",
+            "cranky",
+            "dazzling",
+            "determined",
+            "distracted",
+            "dreamy",
+            "eager",
+            "ecstatic",
+            "elated",
+            "elegant",
+            "epic",
+            "fervent",
+            "festive",
+            "flamboyant",
+            "focused",
+            "friendly",
+            "frosty",
+            "gallant",
+            "gifted",
+            "goofy",
+            "gracious",
+            "happy",
+            "hardcore",
+            "heuristic",
+            "hopeful",
+            "hungry",
+            "infallible",
+            "inspiring",
+            "jolly",
+            "jovial",
+            "keen",
+            "kind",
+            "laughing",
+            "loving",
+            "lucid",
+            "mystifying",
+            "modest",
+            "musing",
+            "naughty",
+            "nervous",
+            "nifty",
+            "nostalgic",
+            "objective",
+            "optimistic",
+            "peaceful",
+            "pedantic",
+            "pensive",
+            "practical",
+            "priceless",
+            "quirky",
+            "quizzical",
+            "recursing",
+            "relaxed",
+            "reverent",
+            "romantic",
+            "sad",
+            "serene",
+            "sharp",
+            "silly",
+            "sleepy",
+            "stoic",
+            "stupefied",
+            "suspicious",
+            "sweet",
+            "tender",
+            "thirsty",
+            "trusting",
+            "unruffled",
+            "upbeat",
+            "vibrant",
+            "vigilant",
+            "vigorous",
+            "wizardly",
+            "wonderful",
+            "xenodochial",
+            "youthful",
+            "zealous",
+            "zen",
+        }
+
+        right = {
+            "albattani",
+            "allen",
+            "almeida",
+            "archimedes",
+            "ardinghelli",
+            "aryabhata",
+            "austin",
+            "babbage",
+            "banach",
+            "banzai",
+            "bardeen",
+            "bartik",
+            "bassi",
+            "beaver",
+            "bell",
+            "benz",
+            "bhabha",
+            "bhaskara",
+            "black",
+            "blackburn",
+            "blackwell",
+            "bohr",
+            "booth",
+            "borg",
+            "bose",
+            "bouman",
+            "boyd",
+            "brahmagupta",
+            "brattain",
+            "brown",
+            "buck",
+            "burnell",
+            "cannon",
+            "carson",
+            "cartwright",
+            "cerf",
+            "chandrasekhar",
+            "chaplygin",
+            "chatelet",
+            "chatterjee",
+            "chebyshev",
+            "cohen",
+            "chaum",
+            "clarke",
+            "colden",
+            "cori",
+            "cray",
+            "curie",
+            "darwin",
+            "davinci",
+            "dijkstra",
+            "dubinsky",
+            "easley",
+            "edison",
+            "einstein",
+            "elbakyan",
+            "elgamal",
+            "elion",
+            "ellis",
+            "engelbart",
+            "euclid",
+            "euler",
+            "faraday",
+            "feistel",
+            "fermat",
+            "fermi",
+            "feynman",
+            "franklin",
+            "gagarin",
+            "galileo",
+            "galois",
+            "ganguly",
+            "gates",
+            "gauss",
+            "germain",
+            "goldberg",
+            "goldstine",
+            "goldwasser",
+            "golick",
+            "goodall",
+            "gould",
+            "greider",
+            "grothendieck",
+            "haibt",
+            "hamilton",
+            "haslett",
+            "hawking",
+            "hellman",
+            "heisenberg",
+            "hermann",
+            "herschel",
+            "hertz",
+            "heyrovsky",
+            "hodgkin",
+            "hoover",
+            "hopper",
+            "hugle",
+            "hypatia",
+            "ishizaka",
+            "jackson",
+            "jang",
+            "jennings",
+            "jepsen",
+            "johnson",
+            "joliot",
+            "jones",
+            "kalam",
+            "kapitsa",
+            "kare",
+            "keldysh",
+            "keller",
+            "kepler",
+            "khayyam",
+            "khorana",
+            "kilby",
+            "kirch",
+            "knuth",
+            "kowalevski",
+            "lalande",
+            "lamarr",
+            "lamport",
+            "leakey",
+            "leavitt",
+            "lederberg",
+            "lehmann",
+            "lewin",
+            "lichterman",
+            "liskov",
+            "lovelace",
+            "lumiere",
+            "mahavira",
+            "margulis",
+            "matsumoto",
+            "maxwell",
+            "mayer",
+            "mccarthy",
+            "mcclintock",
+            "mclaren",
+            "mclean",
+            "mcnulty",
+            "meitner",
+            "meninsky",
+            "mestorf",
+            "mirzakhani",
+            "morse",
+            "murdock",
+            "newton",
+            "nightingale",
+            "nobel",
+            "noether",
+            "northcutt",
+            "noyce",
+            "panini",
+            "pare",
+            "pasteur",
+            "payne",
+            "perlman",
+            "pike",
+            "poincare",
+            "poitras",
+            "ptolemy",
+            "raman",
+            "ramanujan",
+            "ride",
+            "montalcini",
+            "ritchie",
+            "roentgen",
+            "rosalind",
+            "saha",
+            "sammet",
+            "sanderson",
+            "shannon",
+            "shaw",
+            "shirley",
+            "shockley",
+            "shtern",
+            "sinoussi",
+            "snyder",
+            "solomon",
+            "spence",
+            "stallman",
+            "stonebraker",
+            "sutherland",
+            "swanson",
+            "swartz",
+            "swirles",
+            "taussig",
+            "tereshkova",
+            "tesla",
+            "tharp",
+            "thompson",
+            "torvalds",
+            "tu",
+            "turing",
+            "varahamihira",
+            "visvesvaraya",
+            "volhard",
+            "villani",
+            "wescoff",
+            "wilbur",
+            "wiles",
+            "williams",
+            "williamson",
+            "wilson",
+            "wing",
+            "wozniak",
+            "wright",
+            "wu",
+            "yalow",
+            "yonath",
+            "kaspersky",
+        }
+
+        adj = self.api.random.choice(left)
+        name = self.api.random.choice(right)
+        return f"{adj}{separator}{name}"
+
+    def token_urlsafe(self, length: int = 16):
+        """Generate a random token."""
+        return secrets.token_urlsafe(length)

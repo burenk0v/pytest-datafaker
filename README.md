@@ -1,5 +1,6 @@
 # pytest-datafaker
 
+[![PyPI version](https://img.shields.io/pypi/v/pytest-datafaker)](https://pypi.org/project/pytest-datafaker/)
 [![Python Version](https://img.shields.io/badge/python-3.12%2B-blue)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 

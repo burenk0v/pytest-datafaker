@@ -31,11 +31,10 @@ class DataFaker:
         self.logger = logging.getLogger(self.__class__.__name__)
         self.seed = config.seed
         self.logger.info(f"DataFaker seed: {self.seed}")
-        self.api: dict[Locale, Generic] = {}
+        self.api = Generic(locale=Locale.EN, seed=self.seed)
+        self.locale: dict[Locale, Generic] = {}
         if config.locales:
-            self.api = {loc: Generic(locale=loc, seed=self.seed) for loc in config.locales}
-        else:
-            self.api = {Locale.EN: Generic(locale=Locale.EN, seed=self.seed)}
+            self.locale = {loc: Generic(locale=loc, seed=self.seed) for loc in config.locales}
         self._initialized = True
 
     def add_locale(self, loc: Locale) -> None:
@@ -47,7 +46,7 @@ class DataFaker:
         """
         if not loc:
             return
-        self.api[loc] = Generic(locale=loc, seed=self.seed)
+        self.locale[loc] = Generic(locale=loc, seed=self.seed)
 
     def docker_string(self, separator: str = "_") -> str:
         """

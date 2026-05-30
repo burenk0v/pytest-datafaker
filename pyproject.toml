@@ -5,8 +5,7 @@ description = "Pytest plugin with Faker class and fixture"
 authors = [
     {name = "Oleg Burenkov",email = "burenkov.oleg@gmail.com"}
 ]
-license = "MIT"
-license-files = [ "LICENSE" ]
+license = { text = "MIT" }
 classifiers = [
     "Development Status :: 6 - Mature",
     "Intended Audience :: Developers",

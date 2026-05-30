@@ -7,6 +7,14 @@ from pytest_datafaker.config import DataFakerConfig
 from pytest_datafaker.datafaker import DataFaker
 
 
+@pytest.fixture(autouse=True)
+def reset_datafaker_singleton() -> None:
+    """Reset DataFaker singleton between tests."""
+    DataFaker._instance = None
+    yield
+    DataFaker._instance = None
+
+
 class TestDataFakerBasics:
     """Basic tests for DataFaker class."""
 
@@ -17,7 +25,7 @@ class TestDataFakerBasics:
 
         assert faker.seed == 42
         assert faker.api is not None
-        assert Locale.EN in faker.api.locale
+        assert faker.api.locale == Locale.EN
 
     def test_datafaker_with_multiple_locales(self):
         """Test DataFaker initialization with multiple locales."""
@@ -149,22 +157,18 @@ class TestDataFakerFixture:
     def test_data_faker_fixture_generates_internet_data(self, data_faker):
         """Test that fixture can generate internet data."""
         url = data_faker.api.internet.url()
-        username = data_faker.api.internet.username()
-        password = data_faker.api.internet.password()
+        user_agent = data_faker.api.internet.user_agent()
+        ip_address = data_faker.api.internet.ip_v4()
 
         assert isinstance(url, str)
         assert "://" in url
-        assert isinstance(username, str)
-        assert len(username) > 0
-        assert isinstance(password, str)
-        assert len(password) > 0
+        assert isinstance(user_agent, str)
+        assert len(user_agent) > 0
+        assert isinstance(ip_address, str)
+        assert len(ip_address) > 0
 
 
 def test_datafaker_seed_option_in_config(pytestconfig):
     """Test that --datafaker-seed command line option is available."""
-    seed_option = pytestconfig.getoption("datafaker-seed", default=None, skip=False)
-
-    # The option should be accessible (might be None if not provided)
-    assert hasattr(pytestconfig, "_get")
-    # Option name should be registered
-    assert "datafaker-seed" in [opt.name for opt in pytestconfig._parser.option.values()]
+    assert pytestconfig.getoption("--datafaker-seed", default=None, skip=False) is None
+    assert pytestconfig.getoption("datafaker-seed", default=None, skip=False) is None

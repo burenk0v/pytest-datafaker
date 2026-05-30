@@ -70,6 +70,7 @@ lint.select = [
     "UP",      # pyupgrade
     "W",       # pycodestyle
 ]
+lint.ignore = ["PLR2004"]
 lint.isort.combine-as-imports = true
 lint.isort.lines-after-imports = 2
 lint.isort.order-by-type = false

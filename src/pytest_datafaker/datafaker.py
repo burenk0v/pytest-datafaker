@@ -1,10 +1,10 @@
 """Main module for generating fake data."""
+
 import logging
 import secrets
 import threading
 
-from faker import Faker
-from faker.providers import BaseProvider
+from mimesis import Generic, Locale
 
 from .config import DataFakerConfig
 
@@ -29,29 +29,25 @@ class DataFaker:
         if getattr(self, "_initialized", False):
             return
         self.logger = logging.getLogger(self.__class__.__name__)
-        self.api = Faker(list(config.locales)) if config.locales else Faker()
-        if config.providers and config.locales:
-            for loc in config.locales:
-                for provider in config.providers:
-                    self.api[loc].add_provider(provider)
         self.seed = config.seed
-        self.api.seed_instance(self.seed)
         self.logger.info(f"DataFaker seed: {self.seed}")
+        self.api: dict[Locale, Generic] = {}
+        if config.locales:
+            self.api = {loc: Generic(locale=loc, seed=self.seed) for loc in config.locales}
+        else:
+            self.api = {Locale.EN: Generic(locale=Locale.EN, seed=self.seed)}
         self._initialized = True
 
-    def add_provider(self, provider: BaseProvider, locale: str | None = None) -> None:
+    def add_locale(self, loc: Locale) -> None:
         """
-        Add custom provider to all locales or custom.
+        Add locale.
 
-        :param provider: provider to add
-        :param locale: locale to add provider to
+        :param locale: locale to add
         :return: None
         """
-        if locale:
-            self.api[locale].add_provider(provider)
+        if not loc:
             return
-        for loc in self.api.locales:
-            self.api[loc].add_provider(provider)
+        self.api[loc] = Generic(locale=loc, seed=self.seed)
 
     def docker_string(self, separator: str = "_") -> str:
         """

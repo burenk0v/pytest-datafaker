@@ -29,7 +29,7 @@ packages = [
 ]
 dependencies = [
     "pytest (>=9.0.3,<10.0.0)",
-    "faker (>=40.15.0,<41.0.0)"
+    "mimesis (>=19.1.0,<20.0.0)"
 ]
 
 [tool.poetry.group.dev.dependencies]

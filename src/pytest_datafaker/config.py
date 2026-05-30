@@ -6,12 +6,10 @@ from dataclasses import dataclass
 from pathlib import Path
 from time import time_ns
 
-from faker.providers import BaseProvider
-
-from .locales import Locales
+from mimesis.enums import Locale
 
 
-DEFAULT_LOCALES: set[str] = {loc.value for loc in Locales}
+DEFAULT_LOCALES: set[Locale] = {Locale.EN, Locale.RU}
 
 
 @dataclass
@@ -20,7 +18,6 @@ class DataFakerConfig:
 
     seed: int | str
     locales: set[str] | None = None
-    providers: set[BaseProvider] | None = None
 
 
 def get_config_from_toml(toml_path: str | Path, seed: int) -> DataFakerConfig | None:
@@ -32,7 +29,7 @@ def get_config_from_toml(toml_path: str | Path, seed: int) -> DataFakerConfig | 
     if not config_dict:
         logging.warning("No 'pytest_datafaker' section found in pyproject.toml")
         return None
-    return DataFakerConfig(seed, config_dict.get("locales", DEFAULT_LOCALES), config_dict.get("providers", None))
+    return DataFakerConfig(seed, config_dict.get("locales", DEFAULT_LOCALES))
 
 
 def get_config(seed: int | str | None = None) -> DataFakerConfig:
@@ -48,8 +45,8 @@ def get_config(seed: int | str | None = None) -> DataFakerConfig:
             logging.warning(f"Invalid seed value '{seed}', using default seed")
             seed = defaul_seed
     if seed < 0:
-            logging.warning(f"Negative seed value '{seed}', using default seed")
-            seed = defaul_seed
+        logging.warning(f"Negative seed value '{seed}', using default seed")
+        seed = defaul_seed
     if seed == 0:
         logging.warning("Zero seed value, using default seed")
         seed = defaul_seed

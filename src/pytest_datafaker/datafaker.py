@@ -2,7 +2,6 @@
 
 import logging
 import secrets
-import threading
 
 from mimesis import Generic, Locale
 
@@ -12,22 +11,8 @@ from .config import DataFakerConfig
 class DataFaker:
     """Class for abstract Faker methods."""
 
-    _instance: "DataFaker | None" = None
-    _lock = threading.Lock()
-
-    def __new__(cls, *args, **kwargs):
-        """Create instance of DataFaker."""
-        if cls._instance is not None:
-            return cls._instance
-        with cls._lock:
-            if cls._instance is None:
-                cls._instance = super().__new__(cls)
-        return cls._instance
-
     def __init__(self, config: DataFakerConfig):
         """Initialize DataFaker."""
-        if getattr(self, "_initialized", False):
-            return
         self.logger = logging.getLogger(self.__class__.__name__)
         self.seed = config.seed
         self.logger.info(f"DataFaker seed: {self.seed}")
@@ -35,7 +20,6 @@ class DataFaker:
         self.locale: dict[Locale, Generic] = {}
         if config.locales:
             self.locale = {loc: Generic(locale=loc, seed=self.seed) for loc in config.locales}
-        self._initialized = True
 
     def add_locale(self, loc: Locale) -> None:
         """

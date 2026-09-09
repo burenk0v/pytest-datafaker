@@ -138,7 +138,7 @@ For a complete list of available methods, see the [Mimesis documentation](https:
 
 ### Instance Lifecycle
 
-Each `DataFaker` initialization creates an independent instance. In pytest, lifecycle control is handled by the session-scoped `data_faker` fixture:
+Each `DataFaker` initialization creates an independent instance with its own seed and locale state. In pytest, lifecycle control is handled by the session-scoped `data_faker` fixture:
 
 ```python
 from pytest_datafaker import DataFaker

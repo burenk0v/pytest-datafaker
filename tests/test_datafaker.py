@@ -10,6 +10,21 @@ from pytest_datafaker.datafaker import DataFaker
 class TestDataFakerBasics:
     """Basic tests for DataFaker class."""
 
+    @staticmethod
+    def _generated_values_sequence(faker: DataFaker) -> list[str]:
+        """Generate a stable multi-provider sequence for behavioral seed checks."""
+        return [
+            faker.api.person.full_name(),
+            faker.api.person.email(),
+            faker.api.person.telephone(),
+            faker.api.address.address(),
+            faker.api.address.city(),
+            faker.api.address.country(),
+            faker.api.internet.url(),
+            faker.api.internet.user_agent(),
+            faker.api.internet.ip_v4(),
+        ]
+
     def test_datafaker_initialization_with_default_config(self):
         """Test DataFaker initialization with default English locale."""
         config = DataFakerConfig(seed=42)
@@ -103,28 +118,24 @@ class TestDataFakerBasics:
         assert Locale.DE not in faker2.locale
 
     def test_datafaker_reproducible_results_with_seed(self):
-        """Test that same seed produces same results."""
-        config1 = DataFakerConfig(seed=12345, locales={Locale.EN})
-        faker1 = DataFaker(config1)
-        results1 = (
-            faker1.api.person.full_name(),
-            faker1.locale[Locale.EN].person.full_name(),
-            faker1.random.randint(1, 1000),
-            faker1.random.choice(["alpha", "beta", "gamma"]),
-            faker1.docker_string(),
-        )
+        """Test that same seed produces the same behavioral data sequence."""
+        faker1 = DataFaker(DataFakerConfig(seed=12345, locales={Locale.EN}))
+        values1 = self._generated_values_sequence(faker1)
 
-        config2 = DataFakerConfig(seed=12345, locales={Locale.EN})
-        faker2 = DataFaker(config2)
-        results2 = (
-            faker2.api.person.full_name(),
-            faker2.locale[Locale.EN].person.full_name(),
-            faker2.random.randint(1, 1000),
-            faker2.random.choice(["alpha", "beta", "gamma"]),
-            faker2.docker_string(),
-        )
+        faker2 = DataFaker(DataFakerConfig(seed=12345, locales={Locale.EN}))
+        values2 = self._generated_values_sequence(faker2)
 
-        assert results1 == results2
+        assert values1 == values2
+
+    def test_datafaker_different_seeds_produce_different_sequences(self):
+        """Test that different seeds produce different multi-value sequences."""
+        faker1 = DataFaker(DataFakerConfig(seed=123, locales={Locale.EN}))
+        values1 = self._generated_values_sequence(faker1)
+
+        faker2 = DataFaker(DataFakerConfig(seed=456, locales={Locale.EN}))
+        values2 = self._generated_values_sequence(faker2)
+
+        assert values1 != values2
 
     def test_datafaker_token_urlsafe_remains_secure(self):
         """Test that token generation still returns a usable secure token."""

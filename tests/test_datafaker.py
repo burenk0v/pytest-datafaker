@@ -1,5 +1,6 @@
 """Tests for DataFaker class and pytest integration."""
 
+import pytest
 from mimesis.enums import Locale
 
 from pytest_datafaker.config import DataFakerConfig, get_config
@@ -86,23 +87,15 @@ class TestDataFakerBasics:
         assert isinstance(de_name, str)
         assert len(de_name) > 0
 
-<<<<<<< HEAD
     def test_datafaker_instances_do_not_share_state(self):
         """Test that DataFaker instances are independent."""
         faker1 = DataFaker(DataFakerConfig(seed=100, locales={Locale.EN}))
         faker2 = DataFaker(DataFakerConfig(seed=200, locales={Locale.RU}))
-=======
-    def test_datafaker_creates_independent_instances(self):
-        """Test that each DataFaker call creates an independent instance."""
-        config1 = DataFakerConfig(seed=222)
-        faker1 = DataFaker(config1)
->>>>>>> origin/main
 
         assert faker1 is not faker2
         assert faker1.seed == 100
         assert faker2.seed == 200
 
-<<<<<<< HEAD
         assert set(faker1.locale.keys()) == {Locale.EN}
         assert set(faker2.locale.keys()) == {Locale.RU}
 
@@ -112,11 +105,6 @@ class TestDataFakerBasics:
 
         assert set(faker2.locale.keys()) == {Locale.RU}
         assert Locale.FR not in faker2.locale
-=======
-        assert faker1 is not faker2
-        assert faker1.seed == 222
-        assert faker2.seed == 333
->>>>>>> origin/main
 
     def test_datafaker_reproducible_results_with_seed(self):
         """Test that same seed produces same results."""
@@ -130,12 +118,7 @@ class TestDataFakerBasics:
             faker1.docker_string(),
         )
 
-<<<<<<< HEAD
         faker2 = DataFaker(DataFakerConfig(seed=12345, locales={Locale.EN}))
-=======
-        config2 = DataFakerConfig(seed=12345, locales={Locale.EN})
-        faker2 = DataFaker(config2)
->>>>>>> origin/main
         results2 = (
             faker2.api.person.full_name(),
             faker2.locale[Locale.EN].person.full_name(),
@@ -152,7 +135,6 @@ class TestDataFakerBasics:
 
         token = faker.token_urlsafe()
         assert isinstance(token, str)
-        assert token
         assert token
 
 

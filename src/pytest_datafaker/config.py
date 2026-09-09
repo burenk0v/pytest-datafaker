@@ -47,9 +47,6 @@ def get_config(seed: int | str | None = None) -> DataFakerConfig:
     if seed < 0:
         logging.warning(f"Negative seed value '{seed}', using default seed")
         seed = defaul_seed
-    if seed == 0:
-        logging.warning("Zero seed value, using default seed")
-        seed = defaul_seed
     config = get_config_from_toml("pyproject.toml", seed)
     if not config:
         logging.warning("No config found in pyproject.toml, using default config")

@@ -1,6 +1,5 @@
 """Tests for DataFaker class and pytest integration."""
 
-import pytest
 from mimesis.enums import Locale
 
 from pytest_datafaker.config import DataFakerConfig

@@ -136,9 +136,9 @@ For a complete list of available methods, see the [Mimesis documentation](https:
 
 ## 🔧 Features
 
-### Thread Safety
+### Independent Instances
 
-DataFaker uses the Singleton pattern with locking to ensure thread safety:
+Each `DataFaker` initialization returns a separate instance with its own seed and locale state:
 
 ```python
 from pytest_datafaker import DataFaker
@@ -148,7 +148,7 @@ config = DataFakerConfig(seed=42)
 faker1 = DataFaker(config)
 faker2 = DataFaker(config)
 
-assert faker1 is faker2  # Same instance
+assert faker1 is not faker2  # Separate instances
 ```
 
 ### Class Structure

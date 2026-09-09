@@ -7,14 +7,6 @@ from pytest_datafaker.config import DataFakerConfig
 from pytest_datafaker.datafaker import DataFaker
 
 
-@pytest.fixture(autouse=True)
-def reset_datafaker_singleton() -> None:
-    """Reset DataFaker singleton between tests."""
-    DataFaker._instance = None
-    yield
-    DataFaker._instance = None
-
-
 class TestDataFakerBasics:
     """Basic tests for DataFaker class."""
 
@@ -95,18 +87,20 @@ class TestDataFakerBasics:
         assert isinstance(de_name, str)
         assert len(de_name) > 0
 
-    def test_datafaker_singleton_pattern(self):
-        """Test that DataFaker uses Singleton pattern correctly."""
+    def test_datafaker_instances_are_independent(self):
+        """Test that DataFaker instances keep independent state."""
         config1 = DataFakerConfig(seed=222)
         faker1 = DataFaker(config1)
+        faker1.add_locale(Locale.DE)
 
         config2 = DataFakerConfig(seed=333)
         faker2 = DataFaker(config2)
 
-        # Both should be the same instance
-        assert faker1 is faker2
-        # Seed should be from the first initialization
-        assert faker2.seed == 222
+        assert faker1 is not faker2
+        assert faker1.seed == 222
+        assert faker2.seed == 333
+        assert Locale.DE in faker1.locale
+        assert Locale.DE not in faker2.locale
 
     def test_datafaker_reproducible_results_with_seed(self):
         """Test that same seed produces same results."""
@@ -118,8 +112,6 @@ class TestDataFakerBasics:
             faker1.random.choice(["alpha", "beta", "gamma"]),
             faker1.docker_string(),
         )
-
-        DataFaker._instance = None
 
         faker2 = DataFaker(DataFakerConfig(seed=12345, locales={Locale.EN}))
         results2 = (

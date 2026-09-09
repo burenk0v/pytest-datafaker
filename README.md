@@ -95,6 +95,7 @@ The `data_faker` fixture provides access to Mimesis methods through two fields:
 
 - **`data_faker.api`** - Generic instance for the default English locale
 - **`data_faker.locale`** - Dictionary of Generic instances for configured locales
+- **`data_faker.random`** - Seeded deterministic pseudo-random context for reproducible helper values
 
 ### Examples
 

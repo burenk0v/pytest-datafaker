@@ -108,8 +108,6 @@ class TestDataFakerBasics:
     def test_datafaker_reproducible_results_with_seed(self):
         """Test that same seed produces same results."""
         config1 = DataFakerConfig(seed=12345, locales={Locale.EN})
-        # Need to test in separate function to avoid singleton issue
-        # This is more of a conceptual test
 
         config2 = DataFakerConfig(seed=12345, locales={Locale.EN})
 

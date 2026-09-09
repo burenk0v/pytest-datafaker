@@ -3,7 +3,7 @@
 import pytest
 from mimesis.enums import Locale
 
-from pytest_datafaker.config import DataFakerConfig, DEFAULT_LOCALES, get_config
+from pytest_datafaker.config import DataFakerConfig, get_config
 from pytest_datafaker.datafaker import DataFaker
 
 

@@ -6,15 +6,6 @@ from mimesis.enums import Locale
 from pytest_datafaker.config import DataFakerConfig
 from pytest_datafaker.datafaker import DataFaker
 
-
-@pytest.fixture(autouse=True)
-def reset_datafaker_singleton() -> None:
-    """Reset DataFaker singleton between tests."""
-    DataFaker._instance = None
-    yield
-    DataFaker._instance = None
-
-
 class TestDataFakerBasics:
     """Basic tests for DataFaker class."""
 
@@ -94,29 +85,28 @@ class TestDataFakerBasics:
         assert isinstance(de_name, str)
         assert len(de_name) > 0
 
-    def test_datafaker_singleton_pattern(self):
-        """Test that DataFaker uses Singleton pattern correctly."""
+    def test_datafaker_creates_independent_instances(self):
+        """Test that each DataFaker call creates an independent instance."""
         config1 = DataFakerConfig(seed=222)
         faker1 = DataFaker(config1)
 
         config2 = DataFakerConfig(seed=333)
         faker2 = DataFaker(config2)
 
-        # Both should be the same instance
-        assert faker1 is faker2
-        # Seed should be from the first initialization
-        assert faker2.seed == 222
+        assert faker1 is not faker2
+        assert faker1.seed == 222
+        assert faker2.seed == 333
 
     def test_datafaker_reproducible_results_with_seed(self):
         """Test that same seed produces same results."""
         config1 = DataFakerConfig(seed=12345, locales={Locale.EN})
-        # Need to test in separate function to avoid singleton issue
-        # This is more of a conceptual test
+        faker1 = DataFaker(config1)
 
         config2 = DataFakerConfig(seed=12345, locales={Locale.EN})
+        faker2 = DataFaker(config2)
 
-        # Verify configs have same seed
-        assert config1.seed == config2.seed
+        assert faker1.api.person.full_name() == faker2.api.person.full_name()
+        assert faker1.locale[Locale.EN].person.full_name() == faker2.locale[Locale.EN].person.full_name()
 
 
 class TestDataFakerFixture:

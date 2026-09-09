@@ -24,6 +24,7 @@ class TestDataFakerBasics:
         faker = DataFaker(config)
 
         assert faker.seed == 42
+        assert faker.random is not None
         assert faker.api is not None
         assert faker.api.locale == Locale.EN
 
@@ -109,14 +110,35 @@ class TestDataFakerBasics:
 
     def test_datafaker_reproducible_results_with_seed(self):
         """Test that same seed produces same results."""
-        config1 = DataFakerConfig(seed=12345, locales={Locale.EN})
-        # Need to test in separate function to avoid singleton issue
-        # This is more of a conceptual test
+        config = DataFakerConfig(seed=12345, locales={Locale.EN})
+        faker1 = DataFaker(config)
+        results1 = (
+            faker1.api.person.full_name(),
+            faker1.random.randint(1, 1000),
+            faker1.random.choice(["alpha", "beta", "gamma"]),
+            faker1.docker_string(),
+        )
 
-        config2 = DataFakerConfig(seed=12345, locales={Locale.EN})
+        DataFaker._instance = None
 
-        # Verify configs have same seed
-        assert config1.seed == config2.seed
+        faker2 = DataFaker(DataFakerConfig(seed=12345, locales={Locale.EN}))
+        results2 = (
+            faker2.api.person.full_name(),
+            faker2.random.randint(1, 1000),
+            faker2.random.choice(["alpha", "beta", "gamma"]),
+            faker2.docker_string(),
+        )
+
+        assert results1 == results2
+
+    def test_datafaker_token_urlsafe_remains_secure(self):
+        """Test that token generation still returns a usable secure token."""
+        faker = DataFaker(DataFakerConfig(seed=12345))
+
+        token = faker.token_urlsafe()
+
+        assert isinstance(token, str)
+        assert token
 
 
 class TestDataFakerFixture:

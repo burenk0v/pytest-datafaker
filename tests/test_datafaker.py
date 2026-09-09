@@ -201,7 +201,14 @@ class TestGetConfigSeedSemantics:
         assert config.seed == 123
         assert config.locales is None
 
-    @pytest.mark.parametrize("seed", [-1, "-1", "invalid"])
+    @pytest.mark.parametrize(
+        ("seed"),
+        [
+            pytest.param(-1, id="negative-int"),
+            pytest.param("-1", id="negative-str"),
+            pytest.param("invalid", id="invalid-str"),
+        ],
+    )
     def test_get_config_falls_back_for_invalid_seed(self, seed, monkeypatch):
         """Test that negative and invalid seeds use the generated fallback seed."""
         monkeypatch.setattr("pytest_datafaker.config.time_ns", lambda: 777)

@@ -5,6 +5,7 @@ from mimesis.enums import Locale
 from pytest_datafaker.config import DataFakerConfig
 from pytest_datafaker.datafaker import DataFaker
 
+
 class TestDataFakerBasics:
     """Basic tests for DataFaker class."""
 

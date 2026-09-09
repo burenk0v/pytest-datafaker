@@ -7,6 +7,7 @@ import threading
 from mimesis import Generic, Locale
 
 from .config import DataFakerConfig
+from .random_context import RandomContext
 
 
 class DataFaker:
@@ -31,6 +32,7 @@ class DataFaker:
         self.logger = logging.getLogger(self.__class__.__name__)
         self.seed = config.seed
         self.logger.info(f"DataFaker seed: {self.seed}")
+        self.random = RandomContext(self.seed)
         self.api = Generic(locale=Locale.EN, seed=self.seed)
         self.locale: dict[Locale, Generic] = {}
         if config.locales:
@@ -365,10 +367,10 @@ class DataFaker:
             "kaspersky",
         }
 
-        adj = self.api.random.choice(left)
-        name = self.api.random.choice(right)
+        adj = self.random.choice(sorted(left))
+        name = self.random.choice(sorted(right))
         return f"{adj}{separator}{name}"
 
     def token_urlsafe(self, length: int = 16):
-        """Generate a random token."""
+        """Generate a cryptographically secure random token."""
         return secrets.token_urlsafe(length)

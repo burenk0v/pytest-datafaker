@@ -1,7 +1,9 @@
 """Tests for DataFaker class and pytest integration."""
+
+import pytest
 from mimesis.enums import Locale
 
-from pytest_datafaker.config import DataFakerConfig
+from pytest_datafaker.config import DataFakerConfig, get_config
 from pytest_datafaker.datafaker import DataFaker
 
 
@@ -85,8 +87,8 @@ class TestDataFakerBasics:
         assert isinstance(de_name, str)
         assert len(de_name) > 0
 
-    def test_datafaker_instances_are_independent(self):
-        """Test that DataFaker instances keep independent state."""
+    def test_datafaker_creates_independent_instances(self):
+        """Test that each DataFaker call creates an independent instance."""
         config1 = DataFakerConfig(seed=222)
         faker1 = DataFaker(config1)
         faker1.add_locale(Locale.DE)
@@ -102,18 +104,21 @@ class TestDataFakerBasics:
 
     def test_datafaker_reproducible_results_with_seed(self):
         """Test that same seed produces same results."""
-        config = DataFakerConfig(seed=12345, locales={Locale.EN})
-        faker1 = DataFaker(config)
+        config1 = DataFakerConfig(seed=12345, locales={Locale.EN})
+        faker1 = DataFaker(config1)
         results1 = (
             faker1.api.person.full_name(),
+            faker1.locale[Locale.EN].person.full_name(),
             faker1.random.randint(1, 1000),
             faker1.random.choice(["alpha", "beta", "gamma"]),
             faker1.docker_string(),
         )
 
-        faker2 = DataFaker(DataFakerConfig(seed=12345, locales={Locale.EN}))
+        config2 = DataFakerConfig(seed=12345, locales={Locale.EN})
+        faker2 = DataFaker(config2)
         results2 = (
             faker2.api.person.full_name(),
+            faker2.locale[Locale.EN].person.full_name(),
             faker2.random.randint(1, 1000),
             faker2.random.choice(["alpha", "beta", "gamma"]),
             faker2.docker_string(),
@@ -126,7 +131,6 @@ class TestDataFakerBasics:
         faker = DataFaker(DataFakerConfig(seed=12345))
 
         token = faker.token_urlsafe()
-
         assert isinstance(token, str)
         assert token
 
@@ -184,3 +188,72 @@ def test_datafaker_seed_option_in_config(pytestconfig):
     """Test that --datafaker-seed command line option is available."""
     assert pytestconfig.getoption("--datafaker-seed", default=None, skip=False) is None
     assert pytestconfig.getoption("datafaker-seed", default=None, skip=False) is None
+
+
+class TestGetConfigSeedSemantics:
+    """Tests for seed normalization in get_config."""
+
+    def test_get_config_uses_generated_seed_when_seed_is_none(self, monkeypatch):
+        """Test that None seed falls back to generated timestamp-based seed."""
+        monkeypatch.setattr("pytest_datafaker.config.time_ns", lambda: 100)
+
+        config = get_config()
+
+        assert config.seed == 100
+        assert config.locales is None
+
+    @pytest.mark.parametrize("seed", [0, 1, 42])
+    def test_get_config_keeps_valid_integer_seed(self, seed):
+        """Test that zero and positive integers remain deterministic seeds."""
+        config = get_config(seed)
+
+        assert config.seed == seed
+        assert config.locales is None
+
+    def test_get_config_converts_valid_string_seed_to_int(self):
+        """Test that numeric string seeds are converted to integers."""
+        config = get_config("123")
+
+        assert config.seed == 123
+        assert config.locales is None
+
+    @pytest.mark.parametrize(
+        ("seed"),
+        [
+            pytest.param(-1, id="negative-int"),
+            pytest.param("-1", id="negative-str"),
+            pytest.param("invalid", id="invalid-str"),
+        ],
+    )
+    def test_get_config_falls_back_for_invalid_seed(self, seed, monkeypatch):
+        """Test that negative and invalid seeds use the generated fallback seed."""
+        monkeypatch.setattr("pytest_datafaker.config.time_ns", lambda: 777)
+
+        config = get_config(seed)
+
+        assert config.seed == 777
+        assert config.locales is None
+
+    def test_get_config_preserves_toml_locales_with_string_seed(self, tmp_path, monkeypatch):
+        """Test that TOML locales are preserved when normalizing string seeds."""
+        (tmp_path / "pyproject.toml").write_text(
+            "[tool.pytest_datafaker]\nlocales = ['en', 'ru']\n",
+        )
+        monkeypatch.chdir(tmp_path)
+
+        config = get_config("123")
+
+        assert config.seed == 123
+        assert config.locales == ["en", "ru"]
+
+    def test_get_config_preserves_toml_locales_with_zero_seed(self, tmp_path, monkeypatch):
+        """Test that TOML locales are preserved when using zero as a valid seed."""
+        (tmp_path / "pyproject.toml").write_text(
+            "[tool.pytest_datafaker]\nlocales = ['en', 'ru']\n",
+        )
+        monkeypatch.chdir(tmp_path)
+
+        config = get_config(0)
+
+        assert config.seed == 0
+        assert config.locales == ["en", "ru"]

@@ -7,14 +7,6 @@ from pytest_datafaker.config import DataFakerConfig, get_config
 from pytest_datafaker.datafaker import DataFaker
 
 
-@pytest.fixture(autouse=True)
-def reset_datafaker_singleton() -> None:
-    """Reset DataFaker singleton between tests."""
-    DataFaker._instance = None
-    yield
-    DataFaker._instance = None
-
-
 class TestDataFakerBasics:
     """Basic tests for DataFaker class."""
 
@@ -110,26 +102,23 @@ class TestDataFakerBasics:
         assert isinstance(de_name, str)
         assert len(de_name) > 0
 
-    def test_datafaker_singleton_pattern(self):
-        """Test that DataFaker uses Singleton pattern correctly."""
+    def test_datafaker_creates_independent_instances(self):
+        """Test that each DataFaker call creates an independent instance."""
         config1 = DataFakerConfig(seed=222)
         faker1 = DataFaker(config1)
 
         config2 = DataFakerConfig(seed=333)
         faker2 = DataFaker(config2)
 
-        # Both should be the same instance
-        assert faker1 is faker2
-        # Seed should be from the first initialization
-        assert faker2.seed == 222
+        assert faker1 is not faker2
+        assert faker1.seed == 222
+        assert faker2.seed == 333
 
     def test_datafaker_reproducible_results_with_seed(self):
         """Test that same seed produces the same behavioral data sequence."""
-        DataFaker._instance = None
         faker1 = DataFaker(DataFakerConfig(seed=12345, locales={Locale.EN}))
         values1 = self._generated_values_sequence(faker1)
 
-        DataFaker._instance = None
         faker2 = DataFaker(DataFakerConfig(seed=12345, locales={Locale.EN}))
         values2 = self._generated_values_sequence(faker2)
 
@@ -137,11 +126,9 @@ class TestDataFakerBasics:
 
     def test_datafaker_different_seeds_produce_different_sequences(self):
         """Test that different seeds produce different multi-value sequences."""
-        DataFaker._instance = None
         faker1 = DataFaker(DataFakerConfig(seed=123, locales={Locale.EN}))
         values1 = self._generated_values_sequence(faker1)
 
-        DataFaker._instance = None
         faker2 = DataFaker(DataFakerConfig(seed=456, locales={Locale.EN}))
         values2 = self._generated_values_sequence(faker2)
 
@@ -153,7 +140,6 @@ class TestDataFakerBasics:
 
         token = faker.token_urlsafe()
         assert isinstance(token, str)
-        assert token
         assert token
 
 

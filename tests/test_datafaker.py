@@ -228,7 +228,7 @@ class TestGetConfigSeedSemantics:
         config = get_config("123")
 
         assert config.seed == 123
-        assert config.locales == {"en", "ru"}
+        assert config.locales == ["en", "ru"]
 
     def test_get_config_preserves_toml_locales_with_zero_seed(self, tmp_path, monkeypatch):
         """Test that TOML locales are preserved when using zero as a valid seed."""
@@ -240,4 +240,4 @@ class TestGetConfigSeedSemantics:
         config = get_config(0)
 
         assert config.seed == 0
-        assert config.locales == {"en", "ru"}
+        assert config.locales == ["en", "ru"]

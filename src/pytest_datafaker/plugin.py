@@ -18,7 +18,7 @@ def pytest_addoption(parser: pytest.Parser):
         f"--{SEED_OPTION_NAME}",
         action="store",
         default=None,
-        help="Directory for create Hive Steps reports",
+        help="Seed used for deterministic test data generation.",
     )
 
 

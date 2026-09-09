@@ -102,20 +102,24 @@ class TestDataFakerBasics:
         assert isinstance(de_name, str)
         assert len(de_name) > 0
 
-    def test_datafaker_creates_independent_instances(self):
-        """Test that each DataFaker call creates an independent instance."""
-        config1 = DataFakerConfig(seed=222)
-        faker1 = DataFaker(config1)
-        faker1.add_locale(Locale.DE)
-
-        config2 = DataFakerConfig(seed=333)
-        faker2 = DataFaker(config2)
+    def test_datafaker_instances_do_not_share_state(self):
+        """Test that DataFaker instances are independent."""
+        faker1 = DataFaker(DataFakerConfig(seed=100, locales={Locale.EN}))
+        faker2 = DataFaker(DataFakerConfig(seed=200, locales={Locale.RU}))
 
         assert faker1 is not faker2
-        assert faker1.seed == 222
-        assert faker2.seed == 333
-        assert Locale.DE in faker1.locale
-        assert Locale.DE not in faker2.locale
+        assert faker1.seed == 100
+        assert faker2.seed == 200
+
+        assert set(faker1.locale.keys()) == {Locale.EN}
+        assert set(faker2.locale.keys()) == {Locale.RU}
+
+        faker1.api.person.full_name()
+        faker1.locale[Locale.EN].person.full_name()
+        faker1.add_locale(Locale.FR)
+
+        assert set(faker2.locale.keys()) == {Locale.RU}
+        assert Locale.FR not in faker2.locale
 
     def test_datafaker_reproducible_results_with_seed(self):
         """Test that same seed produces the same behavioral data sequence."""

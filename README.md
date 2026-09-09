@@ -10,7 +10,7 @@ A pytest plugin for simple generation of test data using the [Mimesis](https://g
 
 - 🌍 **Multilingual Support** - 30+ languages and locales
 - 🔐 **Controlled Generation** - ability to set seed for reproducible results
-- 🧵 **Thread Safety** - uses Singleton pattern with multithreading support
+- 🔒 **Isolated Instances** - each `DataFaker` instance has its own seed and locale state
 - ⚙️ **Flexible Configuration** - via `pyproject.toml` or command line parameters
 - 📦 **Minimal Dependencies** - only pytest and mimesis
 
@@ -135,9 +135,9 @@ For a complete list of available methods, see the [Mimesis documentation](https:
 
 ## 🔧 Features
 
-### Thread Safety
+### Instance Isolation
 
-DataFaker uses the Singleton pattern with locking to ensure thread safety:
+Each `DataFaker` object keeps independent state:
 
 ```python
 from pytest_datafaker import DataFaker
@@ -145,9 +145,11 @@ from pytest_datafaker.config import DataFakerConfig
 
 config = DataFakerConfig(seed=42)
 faker1 = DataFaker(config)
-faker2 = DataFaker(config)
+faker2 = DataFaker(DataFakerConfig(seed=7))
 
-assert faker1 is faker2  # Same instance
+assert faker1 is not faker2
+assert faker1.seed == 42
+assert faker2.seed == 7
 ```
 
 ### Class Structure
